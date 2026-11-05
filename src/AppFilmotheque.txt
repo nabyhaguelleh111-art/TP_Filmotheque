@@ -1,0 +1,25 @@
+
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+
+import movies from "./data/movies";
+import FilmCard from "./components/FilmCard";
+
+function App() {
+  return (
+    <Container className="py-4">
+      <h1 className="text-center mb-4">Ma filmothèque</h1>
+
+      <Row className="g-4">
+        {movies.map((movie) => (
+          <Col key={movie.id} xs={12} sm={6} lg={4}>
+            <FilmCard movie={movie} />
+          </Col>
+        ))}
+      </Row>
+    </Container>
+  );
+}
+
+export default App;
