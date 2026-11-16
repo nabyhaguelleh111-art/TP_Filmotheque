@@ -152,6 +152,89 @@ h3 {
   color: #ff4b5c;
 }
 
+/* Carte cliquable */
+.film-card-link {
+  display: block;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.film-card-link .card {
+  cursor: pointer;
+}
+
+.film-card-link:focus-visible {
+  outline: none;
+}
+
+.film-card-link:focus-visible .card {
+  outline: 3px solid var(--neon-purple);
+  outline-offset: 4px;
+}
+
+.film-card-hint {
+  color: var(--netflix-red);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Affiche manquante */
+.card-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 300px;
+  font-size: 4rem;
+  background: linear-gradient(145deg, #24243a, #101018);
+}
+
+/* Page de description */
+.movie-detail-title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: 1px;
+}
+
+.movie-detail-description {
+  max-width: 70ch;
+  color: var(--text-main);
+  line-height: 1.7;
+}
+
+.movie-detail-poster,
+.movie-detail-placeholder {
+  width: 100%;
+  border: 1px solid #303044;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+
+.movie-detail-poster {
+  height: auto;
+  max-height: 520px;
+  object-fit: cover;
+}
+
+.movie-detail-placeholder {
+  height: 420px;
+  font-size: 5rem;
+}
+
+/* Bande-annonce intégrée */
+.trailer-frame {
+  max-width: 960px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid #303044;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+
+.trailer-frame iframe {
+  border: 0;
+}
+
 /* Animation d'apparition */
 .row .col {
   animation: appear 0.5s ease both;

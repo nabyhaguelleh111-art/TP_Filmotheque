@@ -1,182 +1,100 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
 import movies from "./data/movies";
-import FilmCard from "./Components/FilmCard";
+import Home from "./pages/Home";
+import MovieDetail from "./pages/MovieDetail";
+
+const STORAGE_KEY = "filmotheque";
+
+// Charge les films sauvegardés et complète les anciennes données
+// (description, bande-annonce, affiche…) avec celles du catalogue.
+function loadMovies() {
+  const savedMovies = localStorage.getItem(STORAGE_KEY);
+
+  if (!savedMovies) return movies;
+
+  try {
+    const parsedMovies = JSON.parse(savedMovies);
+
+    if (!Array.isArray(parsedMovies)) return movies;
+
+    return parsedMovies.map((movie) => {
+      const catalogueMovie = movies.find(
+        (item) => item.id === movie.id || item.title === movie.title
+      );
+
+      if (!catalogueMovie) return movie;
+
+      const mergedMovie = { ...catalogueMovie, ...movie };
+
+      // Une information vide dans le localStorage ne doit pas
+      // effacer celle du catalogue (ex. un film ajouté sans bande-annonce).
+      Object.keys(catalogueMovie).forEach((key) => {
+        const savedValue = movie[key];
+
+        if (
+          savedValue === "" ||
+          savedValue === null ||
+          savedValue === undefined
+        ) {
+          mergedMovie[key] = catalogueMovie[key];
+        }
+      });
+
+      return mergedMovie;
+    });
+  } catch {
+    return movies;
+  }
+}
+
+function NotFound() {
+  return (
+    <Container className="py-5 text-center">
+      <h1>Page introuvable</h1>
+      <p className="text-muted">
+        La page que vous cherchez n'existe pas.
+      </p>
+      <Link to="/" className="btn btn-outline-secondary">
+        ← Retour à l'accueil
+      </Link>
+    </Container>
+  );
+}
 
 function App() {
-  const [search, setSearch] = useState("");
-  const [minRating, setMinRating] = useState("");
+  const [movieList, setMovieList] = useState(loadMovies);
 
-  const [movieList, setMovieList] = useState(() => {
-  const savedMovies = localStorage.getItem("filmotheque");
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(movieList));
+  }, [movieList]);
 
-  return savedMovies ? JSON.parse(savedMovies) : movies;
-});
-
-useEffect(() => {
-  localStorage.setItem("filmotheque", JSON.stringify(movieList));
-}, [movieList]);
-
-  const filteredMovies = movieList.filter((movie) => {
-    const matchesName = movie.title
-      .toLowerCase()
-      .includes(search.trim().toLowerCase());
-
-    const matchesRating =
-      minRating === "" ||
-      movie.rating >= Number(minRating);
-
-    return matchesName && matchesRating;
-  });
-
-  const [newMovie, setNewMovie] = useState({
-    title: "",
-    rating: "",
-  });
-
-  function handleAddMovie(event) {
-    event.preventDefault();
-
-    const movieToAdd = {
-      id: Date.now(),
-      title: newMovie.title,
-      rating: Number(newMovie.rating),
-    };
-
-    setMovieList([...movieList, movieToAdd]);
-
-    setNewMovie({
-      title: "",
-      rating: "",
-    });
+  function addMovie(movie) {
+    setMovieList((currentMovies) => [
+      ...currentMovies,
+      { ...movie, id: Date.now() },
+    ]);
   }
-
-  function resetFilters() {
-    setSearch("");
-    setMinRating("");
-  }
-  
 
   return (
-    <Container className="py-4">
-
-      <h2 className="mb-3">Ajouter un film</h2>
-
-      <Form onSubmit={handleAddMovie}>
-        <Form.Group className="mb-3">
-          <Form.Label>Nom du film</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Exemple : Avatar"
-            value={newMovie.title}
-            onChange={(event) =>
-              setNewMovie({
-                ...newMovie,
-                title: event.target.value,
-              })
-            }
-            required
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Rating sur 10</Form.Label>
-          <Form.Control
-            type="number"
-            min="0"
-            max="10"
-            step="0.1"
-            placeholder="Exemple : 8.5"
-            value={newMovie.rating}
-            onChange={(event) =>
-              setNewMovie({
-                ...newMovie,
-                rating: event.target.value,
-              })
-            }
-            required
-          />
-        </Form.Group>
-
-        <button type="submit" className="btn btn-primary mb-4">
-          Ajouter le film
-        </button>
-      </Form>
-
-      <h1 className="text-center mb-4">
-        Ma filmothèque
-      </h1>
-
-      <Row className="g-3 mb-4">
-        <Col md={8}>
-          <Form.Group>
-            <Form.Label>Rechercher par nom</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Ex. Inception"
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-            />
-          </Form.Group>
-        </Col>
-
-        <Col md={4}>
-          <Form.Group>
-            <Form.Label>Note minimale</Form.Label>
-            <Form.Select
-              value={minRating}
-              onChange={(event) =>
-                setMinRating(event.target.value)
-              }
-            >
-              <option value="">Toutes les notes</option>
-              <option value="7">7/10 et plus</option>
-              <option value="8">8/10 et plus</option>
-              <option value="9">9/10 et plus</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
-      </Row>
-
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <p className="text-muted mb-0">
-          {filteredMovies.length} film(s) trouvé(s)
-        </p>
-
-        <button
-          className="btn btn-outline-secondary btn-sm"
-          onClick={resetFilters}
-        >
-          Réinitialiser
-        </button>
-      </div>
-
-      {filteredMovies.length > 0 ? (
-        <Row className="g-4">
-          {filteredMovies.map((movie) => (
-            <Col key={movie.id} xs={12} sm={6} lg={4}>
-              <FilmCard movie={movie} />
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <div className="text-center py-5">
-          <h3>Aucun film trouvé</h3>
-          <p className="text-muted">
-            Modifiez vos critères de recherche.
-          </p>
-        </div>
-      )}
-    </Container>
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={<Home movies={movieList} onAddMovie={addMovie} />}
+        />
+        <Route
+          path="/films/:id"
+          element={<MovieDetail movies={movieList} />}
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
